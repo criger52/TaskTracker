@@ -6,10 +6,8 @@ from .views import *
 
 
 urlpatterns = [
-    # path('') # http://127.0.0.1:8000/api/v1/project/
-    #path('user/', UserAPIList.as_view()),
-    #path('user/<int:pk>/', UserAPIUpdate.as_view()),
-    #path('userdelete/<int:pk>/', UserAPIDestroy.as_view())
+    path('project/', ProjectView.as_view()), # http://127.0.0.1:8000/api/v1/project/
+    path('project/<int:pk>/', ProjectView.as_view())  # http://127.0.0.1:8000/api/v1/project/
 
 ]
 

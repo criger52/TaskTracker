@@ -1,10 +1,13 @@
+from functools import partial
+
 from django.shortcuts import render
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
+from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
-
+from rest_framework import generics
 from .models import DefaultUser
 from .serializers import UserSerializer
 
@@ -23,14 +26,17 @@ from .serializers import UserSerializer
 
 
 
-class ProjectAPIView(APIView):
+class UserAPIView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = UserSerializer
+    queryset = DefaultUser.objects.all()
 
-    def get_object(self, UUID):
-        print(UUID)
+    def get_object(self, UUID=None):
         try:
             return DefaultUser.objects.get(id=UUID)
         except DefaultUser.DoesNotExist:
-            raise NotFound(detail="Книга не найдена")
+            raise NotFound(detail="user не найдена")
+
+
 
     def get(self, request, UUID=None):
         """
@@ -39,12 +45,12 @@ class ProjectAPIView(APIView):
         if UUID:
             user = self.get_object(UUID)
             if not user:
-                return Response({'error': 'Книгаeъуъъ не найдена'}, status=status.HTTP_404_NOT_FOUND)
-            serializer = UserSerializer(user)
+                return Response({'error': 'Пользователь не найден'}, status=status.HTTP_404_NOT_FOUND)
+            serializer = self.get_serializer(user)
             return Response(serializer.data)
         else:
-            projects = DefaultUser.objects.all()
-            serializer = UserSerializer(projects, many=True)
+            users = DefaultUser.objects.all()
+            serializer = self.get_serializer(users, many=True)
             return Response(serializer.data)
 
     def post(self, request):
@@ -57,12 +63,12 @@ class ProjectAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def put(self, request, pk):
+    def put(self, request, UUID=None):
         """
         Обновить информацию о проекте.
         """
-        user = self.get_object(pk)
-        serializer = UserSerializer(user, data=request.data)
+        user = self.get_object(UUID)
+        serializer = self.get_serializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
