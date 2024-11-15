@@ -44,6 +44,7 @@ class UserAPIView(generics.RetrieveUpdateDestroyAPIView):
         """
         if UUID:
             user = self.get_object(UUID)
+
             if not user:
                 return Response({'error': 'Пользователь не найден'}, status=status.HTTP_404_NOT_FOUND)
             serializer = self.get_serializer(user)
@@ -52,6 +53,7 @@ class UserAPIView(generics.RetrieveUpdateDestroyAPIView):
             users = DefaultUser.objects.all()
             serializer = self.get_serializer(users, many=True)
             return Response(serializer.data)
+
 
     def post(self, request):
         """
