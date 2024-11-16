@@ -79,7 +79,7 @@ class ProjectMembersView(generics.RetrieveUpdateDestroyAPIView):
         try:
             return Project.objects.get(pk=pk)
         except Project.DoesNotExist:
-            raise NotFound(detail="user не найдена")
+            raise NotFound(detail="project не найден")
 
     def get(self, request, pk=None):
         """

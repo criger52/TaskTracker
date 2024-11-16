@@ -11,39 +11,26 @@ from rest_framework import generics
 from .models import DefaultUser
 from .serializers import UserSerializer
 
-# class UserViewSet(viewsets.ModelViewSet):
-#     queryset = DefaultUser.objects.all()
-#     serializer_class = UserSerializer
-#
-#
-#     @action(methods=['post'], detail=False) # эта хуета работает только через postman потму что не приниает get запросы
-#     def registrate(self, request):
-#         serializer = UserSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response({'post': 'Created user'}, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 class UserAPIView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserSerializer
     queryset = DefaultUser.objects.all()
 
-    def get_object(self, UUID=None):
+    def get_object(self, pk=None):
         try:
-            return DefaultUser.objects.get(id=UUID)
+            return DefaultUser.objects.get(pk=pk)
         except DefaultUser.DoesNotExist:
             raise NotFound(detail="user не найдена")
 
 
 
-    def get(self, request, UUID=None):
+    def get(self, request, pk=None):
         """
-        Получить информацию о проектах или о проекте по ID если задан pk.
+        Получить информацию о users или о user по ID если задан pk.
         """
-        if UUID:
-            user = self.get_object(UUID)
+        if pk:
+            user = self.get_object(pk)
 
             if not user:
                 return Response({'error': 'Пользователь не найден'}, status=status.HTTP_404_NOT_FOUND)
@@ -57,7 +44,7 @@ class UserAPIView(generics.RetrieveUpdateDestroyAPIView):
 
     def post(self, request):
         """
-        Создать нового проекта.
+        Создать нового user.
         """
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
@@ -65,11 +52,11 @@ class UserAPIView(generics.RetrieveUpdateDestroyAPIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def put(self, request, UUID=None):
+    def put(self, request, pk=None):
         """
-        Обновить информацию о проекте.
+        Обновить информацию о user.
         """
-        user = self.get_object(UUID)
+        user = self.get_object(pk)
         serializer = self.get_serializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -78,7 +65,7 @@ class UserAPIView(generics.RetrieveUpdateDestroyAPIView):
 
     def delete(self, request, pk):
         """
-        Удалить проект по ID.
+        Удалить user по ID.
         """
         user = self.get_object(pk)
         user.delete()
