@@ -37,6 +37,7 @@ class UserAPIView(generics.RetrieveUpdateDestroyAPIView):
             serializer = self.get_serializer(user)
             return Response(serializer.data)
         else:
+
             users = DefaultUser.objects.all()
             serializer = self.get_serializer(users, many=True)
             return Response(serializer.data)
