@@ -13,7 +13,7 @@ class DefaultUser(AbstractUser):
     email = models.EmailField(unique=True, max_length=255)
     role_platform = models.CharField(max_length=255, default='Beginner')
     avatar = models.ImageField(upload_to='avatar/', default='avatar/def.jpg', blank=True, null=True)
-    history_project = models.JSONField(default=dict)
-
+    # history_project = models.ArrayField(blank=True, null=True, default=[])
+    history_project = models.TextField(blank=True)
 
 

@@ -29,11 +29,13 @@ class UserAPIView(generics.RetrieveUpdateDestroyAPIView):
         """
         Получить информацию о users или о user по ID если задан pk.
         """
+
         if pk:
             user = self.get_object(pk)
 
             if not user:
                 return Response({'error': 'Пользователь не найден'}, status=status.HTTP_404_NOT_FOUND)
+
             serializer = self.get_serializer(user)
             return Response(serializer.data)
         else:

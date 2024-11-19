@@ -21,5 +21,12 @@ for i in os.listdir():
     if i[0] == '0':
         os.remove(i)
 
+os.chdir('..')
+os.chdir('..')
+os.chdir('task/migrations')
+for i in os.listdir():
+    if i[0] == '0':
+        os.remove(i)
+
 
 

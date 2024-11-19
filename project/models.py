@@ -1,8 +1,8 @@
 import uuid
-from tkinter.font import names
 
 from django.conf import settings
 from django.db import models
+from django.db.models import PROTECT
 
 
 class Project(models.Model):
@@ -20,11 +20,14 @@ class Project(models.Model):
 
 class Roles(models.Model):
     name = models.CharField(max_length=64)
-    id_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='role_in_proj')
-    id_project = models.ForeignKey(Project, on_delete=models.PROTECT)
+    id_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='role_in_proj')
+    id_project = models.ForeignKey(Project, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
+
+
+
 
 
 
