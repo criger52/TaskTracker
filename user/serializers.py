@@ -9,10 +9,26 @@ class UserSerializer(serializers.ModelSerializer):
     projects = ProjectSerializer(many=True, read_only=True)
     role_in_proj = RolesSerializer(many=True, read_only=True)
 
-
-
     class Meta:
         model = DefaultUser
         fields = ['id', 'username', 'first_name', 'last_name', 'email', 'password', 'role_platform', 'avatar', 'projects', 'history_project', 'role_in_proj']
+
+
+class RegistrationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DefaultUser
+        fields = ['username', 'first_name', 'last_name', 'email', 'password', 'role_platform']
+
+    def create(self, validated_data):
+        user = DefaultUser.objects.create_user(
+            username=validated_data['username'],
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name'],
+            email=validated_data['email'],
+            password=validated_data['password'],
+            role_platform=validated_data['role_platform'],
+        )
+        return user
+
 
 

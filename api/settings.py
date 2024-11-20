@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os
+from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -41,7 +42,8 @@ INSTALLED_APPS = [
     'user',
     'project',
     'task',
-    'comment'
+    'comment',
+    'rest_framework_simplejwt'
 
 ]
 
@@ -132,3 +134,19 @@ AUTH_USER_MODEL = 'user.DefaultUser'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',  # Для аутентификации по токену
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',  # Доступ только для авторизованных пользователей
+    ],
+}
+
+
+SIMPLE_JWT = {
+    'SIGNING_KEY': SECRET_KEY,  # Убедитесь, что ключ подписи установлен
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),  # Время жизни access токена
+    'REFRESH_TOKEN_LIFETIME': timedelta(hours=3),  # Время жизни refresh токена
+}

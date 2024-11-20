@@ -1,4 +1,6 @@
 import uuid
+
+from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import TextField
@@ -6,7 +8,7 @@ from django.db.models import TextField
 
 
 class DefaultUser(AbstractUser):
-    # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = models.CharField(max_length=123, unique=True)
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)

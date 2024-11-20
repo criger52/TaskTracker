@@ -6,10 +6,10 @@ from user.models import DefaultUser
 
 
 class Task(models.Model):
-    title = models.CharField(max_length=16)
+    title = models.CharField(max_length=64)
     description = models.TextField()
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)  # поменять на uuid
-    user = models.ForeignKey(DefaultUser, on_delete=models.CASCADE, related_name='usser')  # поменять на uuid
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='tasks')  # поменять на uuid
+    user = models.ForeignKey(DefaultUser, on_delete=models.CASCADE)  # поменять на uuid
 
     STATUS_CHOICES = (
         ('Grooming', 'Grooming'),
@@ -29,7 +29,7 @@ class Task(models.Model):
     create_date = models.DateField(auto_now_add=True)
     last_update_date = models.DateField(auto_now=True)
     deadline = models.DateField()
-    responsible_fot_test = models.ForeignKey(DefaultUser, on_delete=models.CASCADE)
+    responsible_fot_test = models.ForeignKey(DefaultUser, on_delete=models.CASCADE, related_name='responsible')
 
 
 

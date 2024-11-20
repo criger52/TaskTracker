@@ -14,6 +14,7 @@ class Project(models.Model):
     status = models.CharField(max_length=64, default='active')
     members = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='projects')
 
+
     def __str__(self):
         return self.title
 
