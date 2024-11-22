@@ -3,9 +3,10 @@ from symtable import Class
 
 from PIL.ImageOps import posterize
 from django.contrib.auth import authenticate
+from django.contrib.staticfiles.views import serve
 from django.core.serializers import get_serializer
 from django.shortcuts import render
-from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter
+# from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.exceptions import NotFound
 from rest_framework.generics import get_object_or_404, CreateAPIView, RetrieveAPIView, ListAPIView
@@ -17,7 +18,12 @@ from rest_framework import generics
 from rest_framework.viewsets import ViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from comment.models import Comment
+from comment.seializers import CommentSerializer
+from project.models import Project
+from task.models import Task
 from project.serializers import ProjectSerializer, ProjectTitleIDSerializers
+from task.serializers import TaskSerializer
 from .models import DefaultUser
 from .serializers import UserSerializer, RegistrationSerializer, UserProfileForAllSerializer, UserProjectSerializer
 
@@ -105,15 +111,15 @@ from .serializers import UserSerializer, RegistrationSerializer, UserProfileForA
 #         serializer = UserSerializer(users, many=True)
 #         return Response(serializer.data)
 
-@extend_schema(
-        summary="Регистрация нового пользователя",
-        description="Регистрирует пользователя с заданными данными",
-        request=RegistrationSerializer,
-        responses={
-            201: OpenApiResponse(response=UserSerializer, description="Пользователь успешно зарегистрирован"),
-            400: OpenApiResponse(description="Ошибки валидации")
-        }
-    )
+# @extend_schema(
+#         summary="Регистрация нового пользователя",
+#         description="Регистрирует пользователя с заданными данными",
+#         request=RegistrationSerializer,
+#         responses={
+#             201: OpenApiResponse(response=UserSerializer, description="Пользователь успешно зарегистрирован"),
+#             400: OpenApiResponse(description="Ошибки валидации")
+#         }
+#     )
 class RegistrationAPIView(CreateAPIView):
     permission_classes = [AllowAny]
     serializer_class = RegistrationSerializer
@@ -127,15 +133,15 @@ class RegistrationAPIView(CreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@extend_schema(
-        summary="Текущий аутентифицированный пользователь",
-        description="Обращается к текущему аутентифицированному пользователю",
-        request=UserSerializer,
-        responses={
-            200: OpenApiResponse(response=UserSerializer, description="Пользователь успешно получен"),
-            400: OpenApiResponse(description="Ошибки валидации")
-        }
-    )
+# @extend_schema(
+#         summary="Текущий аутентифицированный пользователь",
+#         description="Обращается к текущему аутентифицированному пользователю",
+#         request=UserSerializer,
+#         responses={
+#             200: OpenApiResponse(response=UserSerializer, description="Пользователь успешно получен"),
+#             400: OpenApiResponse(description="Ошибки валидации")
+#         }
+#     )
 class CurrentUserView(APIView):
 
     permission_classes = [IsAuthenticated]
@@ -164,16 +170,16 @@ class GetUserAPIView(RetrieveAPIView):
     permission_classes = [AllowAny]
     queryset = DefaultUser.objects.all()
     serializer_class = UserSerializer
-    lookup_field = 'username'
+    lookup_field = 'id'
 
 class DeleteUpdateUserAPIView(APIView):
-    permission_classes = [AllowAny]  # нужно что бы текущий аутентифицированный пользователь совпдал по айди с изменяемым lj,fdm fynetnbabwbhjdyyjcnm
+    permission_classes = [AllowAny]  # нужно что бы текущий аутентифицированный пользователь совпадал по айди с изменяемым lj,fdm fynetnbabwbhjdyyjcnm
     queryset = DefaultUser.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'id'
 
     def patch(self, request, *args, **kwargs):
-        user = DefaultUser.objects.all().filter(username=request.user).first()  # Получаем пользователя по username
+        user = DefaultUser.objects.all().filter(id=request.id_user).first()  # Получаем пользователя по id
 
         serializer = UserSerializer(user, data=request.data, partial=True)  # partial=True позволяет частично обновить данные
 
@@ -195,7 +201,7 @@ class ListUserAPIView(ListAPIView):
 class ListProjectsUser(APIView):
     # permission_classes = [IsAuthenticated]
     permission_classes = [AllowAny]
-    queryset = DefaultUser
+    queryset = DefaultUser.objects.all()
     serializer_class = UserProjectSerializer
 
 
@@ -206,11 +212,34 @@ class ListProjectsUser(APIView):
 class ProjectUserAPIView(APIView):
     # permission_classes = [IsAuthenticated]
     permission_classes = [AllowAny]
-    queryset = DefaultUser
+    queryset = DefaultUser.objects.all()
     serializer_class = UserProjectSerializer
 
-    def get(self, request, *args, **kwargs):
-        project = DefaultUser.objects.all().filter(username=request.user).first().projects.filter(id=request.id).first()
+    def get(self, request, id_project=None, *args, **kwargs):
+        project = Project.objects.all().filter(id=id_project).first()
         serializer = ProjectSerializer(project)
         return Response(serializer.data)
+
+class TaskProjectUserAPIView(APIView):
+    # permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
+    queryset = DefaultUser.objects.all()
+    serializer_class = UserProjectSerializer
+
+    def get(self, request, id_task=None, *args, **kwargs):
+        task = Task.objects.all().filter(id=id_task).first()
+        serializer = TaskSerializer(task)
+        return Response(serializer.data)
+
+class CommentTaskProjectUserAPIView(APIView):
+    # permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+
+    def get(self, request, id_comment=None, *args, **kwargs):
+        comment = Comment.objects.all().filter(id=id_comment).first()
+        serializer = CommentSerializer(comment)
+        return Response(serializer.data)
+
 

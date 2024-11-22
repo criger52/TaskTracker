@@ -44,8 +44,8 @@ INSTALLED_APPS = [
     'task',
     'comment',
     'rest_framework_simplejwt',
-    'drf_spectacular',
-    'drf_spectacular_sidecar'
+    # 'drf_spectacular',
+    # 'drf_spectacular_sidecar'
 
 ]
 

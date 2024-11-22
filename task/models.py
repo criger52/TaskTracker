@@ -32,7 +32,7 @@ class Task(models.Model):
     create_date = models.DateField(auto_now_add=True)
     last_update_date = models.DateField(auto_now=True)
     deadline = models.DateField()
-    responsible_fot_test = models.ForeignKey(DefaultUser, on_delete=models.CASCADE, related_name='responsible')
+    tester = models.ForeignKey(DefaultUser, on_delete=models.CASCADE, related_name='responsible')
 
 
 

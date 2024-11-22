@@ -15,11 +15,11 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view()),
     path('me/', CurrentUserView.as_view()),
     path('all/', ListUserAPIView.as_view()),
-    path('<str:username>/', GetUserAPIView.as_view()),
-    path('<str:username>/edit/', DeleteUpdateUserAPIView.as_view()),
-    path('<str:username>/projects/', ListProjectsUser.as_view()),
-    path('<str:username>/<uuid:id>/', ProjectUserAPIView.as_view()),
-    # path('<str:username>/<uuid:id>/<uuid:id>/',
-    # path('<str:username>/<uuid:id>/<uuid:id>/<uuid:id>/',
-    #
+    path('<uuid:id>/', GetUserAPIView.as_view()),
+    path('<uuid:id>/edit/', DeleteUpdateUserAPIView.as_view()),
+    path('<uuid:id_user>/projects/', ListProjectsUser.as_view()),
+    path('<uuid:id_user>/<uuid:id_project>/', ProjectUserAPIView.as_view()),
+    path('<uuid:id_user>/<uuid:id_project>/<uuid:id_task>/', TaskProjectUserAPIView.as_view()),
+    path('<uuid:id_user>/<uuid:id_project>/<uuid:id_task>/<uuid:id_comment>/', CommentTaskProjectUserAPIView.as_view()),
+    # path('test/', serosadsad.as_view()),
 ]
