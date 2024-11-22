@@ -22,7 +22,7 @@ from comment.models import Comment
 from comment.seializers import CommentSerializer
 from project.models import Project
 from task.models import Task
-from project.serializers import ProjectSerializer, ProjectTitleIDSerializers
+from project.serializers import *
 from task.serializers import TaskSerializer
 from .models import DefaultUser
 from .serializers import UserSerializer, RegistrationSerializer, UserProfileForAllSerializer, UserProjectSerializer

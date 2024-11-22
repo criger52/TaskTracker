@@ -11,7 +11,11 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DefaultUser
-        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'password', 'role_platform', 'avatar', 'projects', 'history_project', 'role_in_proj']
+        fields = ['id', 'username', 'first_name', 'last_name', 'role_platform', 'avatar', 'projects', 'history_project', 'role_in_proj']
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'email': {'write_only': True},
+        }
 
 class UserProfileForAllSerializer(serializers.ModelSerializer):
     avatar = serializers.ImageField(use_url=True, required=False)

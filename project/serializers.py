@@ -10,10 +10,10 @@ class ProjectSerializer(serializers.ModelSerializer):
         model = Project
         fields = ['id', 'title', 'description', 'status', 'date_of_creation', 'date_of_update', 'members', 'tasks']
 
-class ProjectTitleIDSerializers(serializers.ModelSerializer):
+class ProjectListSerializers(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ['id', 'title']
+        fields = ['id', 'title', 'description', 'status']
 
 class RolesSerializer(serializers.ModelSerializer):
     class Meta:
