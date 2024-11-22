@@ -23,21 +23,21 @@ class ProjectView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ProjectSerializer
     queryset = Project.objects.all()
 
-    def get_object(self, pk=None):
+    def get_object(self, id=None):
         try:
-            return Project.objects.get(pk=pk)
+            return Project.objects.get(id=id)
         except Project.DoesNotExist:
             raise NotFound(detail="user не найдена")
 
 
 
-    def get(self, request, pk=None):
+    def get(self, request, id=None):
         """
         Получить информацию о проектах или о проекте по ID если задан pk.
         """
 
-        if pk:
-            project = self.get_object(pk)
+        if id:
+            project = self.get_object(id)
             if not project:
                 return Response({'error': 'Пользователь не найден'}, status=status.HTTP_404_NOT_FOUND)
             serializer = self.get_serializer(project)
@@ -47,7 +47,7 @@ class ProjectView(generics.RetrieveUpdateDestroyAPIView):
             serializer = self.get_serializer(projects, many=True)
             return Response(serializer.data)
 
-    def post(self, request,pk=None):
+    def post(self, request):
         """
         Создать нового проекта.
         """
@@ -63,22 +63,22 @@ class ProjectView(generics.RetrieveUpdateDestroyAPIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def put(self, request, pk=None):  # надо добавить сюда при добавлении нового пользоваателя что бы ему записывалось в history_proj
+    def put(self, request, id=None):  # надо добавить сюда при добавлении нового пользоваателя что бы ему записывалось в history_proj
         """
         Обновить информацию о проекте.
         """
-        user = self.get_object(pk)
+        user = self.get_object(id)
         serializer = self.get_serializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, pk=None):
+    def delete(self, request, id=None):
         """
         Удалить проект по ID.
         """
-        user = self.get_object(pk)
+        user = self.get_object(id)
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -87,18 +87,18 @@ class ProjectMembersView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ProjectSerializer
     queryset = Project.objects.all()
 
-    def get_object(self, pk=None):
+    def get_object(self, id=None):
         try:
-            return Project.objects.get(pk=pk)
+            return Project.objects.get(id=id)
         except Project.DoesNotExist:
             raise NotFound(detail="project не найден")
 
-    def get(self, request, pk=None):
+    def get(self, request, id=None):
         """
         Получить информацию о проектах или о проекте по ID если задан pk.
         """
-        if pk:
-            project = self.get_object(pk)
+        if id:
+            project = self.get_object(id)
             if not project:
                 return Response({'error': 'Пользователь не найден'}, status=status.HTTP_404_NOT_FOUND)
             serializer = self.get_serializer(project)
@@ -106,22 +106,22 @@ class ProjectMembersView(generics.RetrieveUpdateDestroyAPIView):
 
 
 
-    def put(self, request, pk=None):
+    def put(self, request, id=None):
         """
         Обновить информацию о проекте.
         """
-        user = self.get_object(pk)
+        user = self.get_object(id)
         serializer = self.get_serializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, pk=None):
+    def delete(self, request, id=None):
         """
         Удалить проект по ID.
         """
-        user = self.get_object(pk)
+        user = self.get_object(id)
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -130,21 +130,21 @@ class RolesView(generics.RetrieveUpdateDestroyAPIView):  # надо дописа
     serializer_class = RolesSerializer
     queryset = Roles.objects.all()
 
-    def get_object(self, pk=None):
+    def get_object(self, id=None):
         try:
-            return Roles.objects.get(pk=pk)
+            return Roles.objects.get(id=id)
         except Roles.DoesNotExist:
             raise NotFound(detail="user не найдена")
 
 
 
-    def get(self, request, pk=None):
+    def get(self, request, id=None):
         """
-        Получить информацию о проектах или о проекте по ID если задан pk.
+        Получить информацию о проектах или о проекте по ID если задан id.
         """
 
-        if pk:
-            project = self.get_object(pk)
+        if id:
+            project = self.get_object(id)
             if not project:
                 return Response({'error': 'Пользователь не найден'}, status=status.HTTP_404_NOT_FOUND)
             serializer = self.get_serializer(project)
@@ -154,7 +154,7 @@ class RolesView(generics.RetrieveUpdateDestroyAPIView):  # надо дописа
             serializer = self.get_serializer(projects, many=True)
             return Response(serializer.data)
 
-    def post(self, request,pk=None):
+    def post(self, request,id=None):
         """
         Создать нового проекта.
         """
@@ -164,22 +164,22 @@ class RolesView(generics.RetrieveUpdateDestroyAPIView):  # надо дописа
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def put(self, request, pk=None):
+    def put(self, request, id=None):
         """
         Обновить информацию о проекте.
         """
-        user = self.get_object(pk)
+        user = self.get_object(id)
         serializer = self.get_serializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, pk=None):
+    def delete(self, request, id=None):
         """
         Удалить проект по ID.
         """
-        user = self.get_object(pk)
+        user = self.get_object(id)
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 

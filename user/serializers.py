@@ -13,6 +13,16 @@ class UserSerializer(serializers.ModelSerializer):
         model = DefaultUser
         fields = ['id', 'username', 'first_name', 'last_name', 'email', 'password', 'role_platform', 'avatar', 'projects', 'history_project', 'role_in_proj']
 
+class UserProfileForAllSerializer(serializers.ModelSerializer):
+    avatar = serializers.ImageField(use_url=True, required=False)
+    role_in_proj = RolesSerializer(many=True, read_only=True)
+    class Meta:
+        model = DefaultUser
+        fields = ['username', 'first_name', 'last_name', 'role_platform', 'avatar', 'role_in_proj', 'history_project']
+
+
+
+
 
 class RegistrationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -30,5 +40,10 @@ class RegistrationSerializer(serializers.ModelSerializer):
         )
         return user
 
+class UserProjectSerializer(serializers.ModelSerializer):
+    projects = ProjectSerializer(many=True, read_only=True)
+    role_in_proj = RolesSerializer(many=True, read_only=True)
 
-
+    class Meta:
+        model = DefaultUser
+        fields = ['projects', 'role_in_proj']

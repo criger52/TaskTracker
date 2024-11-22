@@ -43,7 +43,9 @@ INSTALLED_APPS = [
     'project',
     'task',
     'comment',
-    'rest_framework_simplejwt'
+    'rest_framework_simplejwt',
+    'drf_spectacular',
+    'drf_spectacular_sidecar'
 
 ]
 
@@ -136,17 +138,21 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',  # Для аутентификации по токену
-    ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',  # Доступ только для авторизованных пользователей
-    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Task tracker API',
+    'DESCRIPTION': 'API для создания проектов.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
 
 SIMPLE_JWT = {
     'SIGNING_KEY': SECRET_KEY,  # Убедитесь, что ключ подписи установлен
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),  # Время жизни access токена
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=120),  # Время жизни access токена
     'REFRESH_TOKEN_LIFETIME': timedelta(hours=3),  # Время жизни refresh токена
 }

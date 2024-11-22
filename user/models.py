@@ -4,7 +4,7 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import TextField
-
+from rest_framework.exceptions import ValidationError
 
 
 class DefaultUser(AbstractUser):
@@ -17,5 +17,8 @@ class DefaultUser(AbstractUser):
     avatar = models.ImageField(upload_to='avatar/', default='avatar/def.jpg', blank=True, null=True)
     # history_project = models.ArrayField(blank=True, null=True, default=[])
     history_project = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.username
 
 
