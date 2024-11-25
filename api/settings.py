@@ -44,8 +44,9 @@ INSTALLED_APPS = [
     'task',
     'comment',
     'rest_framework_simplejwt',
-    # 'drf_spectacular',
-    # 'drf_spectacular_sidecar'
+    'drf_spectacular',
+    'drf_spectacular_sidecar',
+    'channels'
 
 ]
 
@@ -85,10 +86,27 @@ WSGI_APPLICATION = 'api.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME', 'default_db_name'),
+        'USER': os.getenv('DB_USER', 'default_user'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'default_password'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
+
+
+
+
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST = 'smtp.example.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'email@example.com'
+EMAIL_HOST_PASSWORD = 'passw0rd'
+DEFAULT_FROM_EMAIL = 'email@example.com'
+
 
 
 # Password validation
@@ -142,6 +160,10 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',  # Это включает интерфейс браузера
+    ),
 }
 
 SPECTACULAR_SETTINGS = {
@@ -155,4 +177,12 @@ SIMPLE_JWT = {
     'SIGNING_KEY': SECRET_KEY,  # Убедитесь, что ключ подписи установлен
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=120),  # Время жизни access токена
     'REFRESH_TOKEN_LIFETIME': timedelta(hours=3),  # Время жизни refresh токена
+}
+
+ASGI_APPLICATION = 'your_project_name.asgi.application'
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    }
 }

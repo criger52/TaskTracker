@@ -1,55 +1,259 @@
-from functools import partial
+from django.core.mail import send_mail
+from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 
-from django.shortcuts import render
-from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound
-from rest_framework.generics import get_object_or_404, ListAPIView, RetrieveAPIView, GenericAPIView
-from rest_framework.permissions import AllowAny
+from rest_framework.generics import ListAPIView, RetrieveAPIView, GenericAPIView, CreateAPIView
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, filters
 from rest_framework.views import APIView
-from rest_framework import generics
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
+from comment.models import Comment
+from comment.seializers import CommentSerializer
+from task.models import Task
+from task.serializers import TaskInProjectSerializer
 from user.models import DefaultUser
-from .models import Project, Roles
-from .serializers import ProjectSerializer, RolesSerializer, ProjectListSerializers
+from .permissions import IsCreatorOrTeamLead
+from .serializers import *
+
+@extend_schema(
+        summary="Создает новый проект",
+        description="Создает новый проект, доступен для аутентифицированных",
+        request=ProjectCreateSerializer,
+    )
+class ProjectCreate(CreateAPIView):
+    permission_classes = (IsAuthenticated,)
+    queryset = Project.objects.all()
+    serializer_class = ProjectCreateSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(creator=self.request.user)
 
 
+@extend_schema(
+        summary="Получает список всех проектов",
+        description="Получает список всех проектов, доступен для всех",
+        request=ProjectAllListSerializers,
+    )
 class ProjectAll(ListAPIView):
-    # permission_classes = ()
     permission_classes = (AllowAny, )
     queryset = Project.objects.all()
-    model = Project
-    serializer_class = ProjectListSerializers
+    serializer_class = ProjectAllListSerializers
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    ordering_fields = ["date_of_creation", "date_of_update", "title"]
+    ordering = ["date_of_creation"]
 
+@extend_schema(
+        summary="Получение конкретного проекта по id",
+        description="Получение конкретного проекта по id, доступен для всех",
+        request=ProjectListSerializers,
+    )
 class ProjectByUUID(RetrieveAPIView):
-    # permission_classes = ()
-    permission_classes = (AllowAny,)
+    permission_classes = (AllowAny, )
     queryset = Project.objects.all()
-    model = Project
     serializer_class = ProjectListSerializers
     lookup_field = 'id'
 
+@extend_schema(
+        summary="Изменение/удаление конкретного проекта по id",
+        description="Изменение/удаление конкретного проекта по id, доступен для создателей проекта или для участников с ролью TeamLead",
+        request=ProjectListSerializers,
+        responses={
+            200: OpenApiResponse(response=ProjectListSerializers, description="Проект успешно изменен"),
+            400: OpenApiResponse( description="Ошибка валидации"),
+            204: OpenApiResponse(description="Проект успешно удален")
+        }
+    )
 class ProjectEdit(GenericAPIView):
-    # permission_classes = ()
-    permission_classes = (AllowAny,)
+    permission_classes = (IsCreatorOrTeamLead, )  # IsOwner
     queryset = Project.objects.all()
-    model = Project
     serializer_class = ProjectListSerializers
     lookup_field = 'id'
 
-    def patch(self, request, id=None, *args, **kwargs):
-        project = Project.objects.get(id=id)
-
-
-        serializer = self.get_serializer(project, data=request.data)
+    def patch(self, request , *args, **kwargs):
+        project = Project.objects.get(id=kwargs.get('id'))
+        serializer = self.get_serializer(project, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response({"detail": "project is updated"}, status=status.HTTP_200_OK)
         return Response({"detail": "not valid data"}, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, *args, **kwargs):
-        pass
+        project = Project.objects.get(id=kwargs.get('id'))
+        project.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+
+@extend_schema(
+        summary="Получение ролей в конкретном проекте",
+        description="Получение ролей в конкретном проекте, доступен для всех",
+        request=ProjectMemberSerializer,
+    )
+class ProjectListMembers(APIView):
+    permission_classes = (AllowAny,)  # доавить право тест на то что creator IsCreator
+    queryset = Project.objects.all()
+    serializer_class = ProjectMemberSerializer
+
+    def get(self, request, *args, **kwargs):
+        id_project = kwargs.get('id')
+        roles = Roles.objects.filter(id_project=id_project)
+        serializer = RolesSerializer(roles, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class AllRoles(ListAPIView):
+    permission_classes = (IsAdminUser, )
+    queryset = Roles.objects.all()
+    serializer_class = RolesSerializer
+
+@extend_schema(
+        summary="Создание новой роли в проекте",
+        description="создание новой роли в проекте, доступен для создателей проекта или для участников с ролью TeamLead",
+        request=AddRolesSerializer,
+        responses={
+            200: OpenApiResponse(response=AddRolesSerializer, description="Роль успешно создана"),
+            400: OpenApiResponse( description="Ошибка валидации"),
+        }
+    )
+class AddRole(APIView):
+    permission_classes = (IsCreatorOrTeamLead, )
+    queryset = Roles.objects.all()
+    serializer_class = AddRolesSerializer
+
+    def post(self, request, *args, **kwargs):
+        project = Project.objects.get(id=kwargs.get('id'))
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save(id_project=project)
+            user = DefaultUser.objects.get(id=request.data.get('id_user'))
+            ls = user.history_project.split()
+            if project.title not in ls:
+                ls.append(project.title)
+            user.history_project = ' '.join(ls)
+            user.save()
+            try:
+                send_mail('Вас добавили в проект',
+                          f'Вас доавбили в проект {project.title}',
+                          'vladimirv2312@gmail.com',
+                        [DefaultUser.objects.get(id=request.data.get('id_user')).email])
+            except:
+                pass
+            try:
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    "notifications",
+                    {
+                        "type": "send_notification",
+                        "message": {
+                            "title": "Новое уведомление",
+                            "body": f"Вас добавили в проект {project.title}",
+                            "project_id": project.id,
+                        },
+                    },
+                )
+            except:
+                pass
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@extend_schema(
+        summary="Изменение/удаление роли в проекте",
+        description="Изменение/удаление роли в проекте, доступен для создателей проекта или для участников с ролью TeamLead",
+        request=RolesSerializer,
+        responses={
+            200: OpenApiResponse(response=AddRolesSerializer, description="Роль успешно обновлена"),
+            400: OpenApiResponse(description="Ошибка валидации"),
+            204: OpenApiResponse(description="Роль успешно удалена")
+        }
+    )
+class ProjectMemberEdit(APIView):
+    permission_classes = (IsCreatorOrTeamLead,)
+    queryset = Roles.objects.all()
+    serializer_class = RolesSerializer
+    lookup_field = 'id'
+
+    def patch(self, request, *args, **kwargs):
+        role = Roles.objects.get(id=kwargs['id_role'])
+        serializer= self.serializer_class(role, request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, *args, **kwargs):
+        role = Roles.objects.get(id=kwargs['id_role'])
+        role.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+@extend_schema(
+        summary="Получение зада конкретного проекта",
+        description="Получение зада конкретного проекта, доступен для всех",
+        request=TaskInProjectSerializer,
+        responses={
+            200: OpenApiResponse(response=TaskInProjectSerializer, description="Задачи успешно получены"),
+        }
+    )
+class TaskProject(APIView):
+    permission_classes = (AllowAny,)
+    queryset = Task.objects.all()
+    serializer_class = TaskInProjectSerializer
+
+    def get(self, request, *args, **kwargs):
+        if kwargs.get('id_task',None):
+            task = Task.objects.get(id=kwargs.get('id_task',None))
+            serializer = self.serializer_class(task)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        tasks = Task.objects.filter(project=kwargs.get('id'))
+        serializer = self.serializer_class(tasks, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class TaskProjectEdit(APIView):
+    permission_classes = (IsAdminUser,)
+    queryset = Task.objects.all()
+    serializer_class = TaskInProjectSerializer
+
+    def patch(self, request, *args, **kwargs):
+        task = Task.objects.get(id=kwargs['id_task'])
+        serializer = self.serializer_class(task, request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, *args, **kwargs):
+        task = Task.objects.get(id=kwargs['id_task'])
+        task.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+@extend_schema(
+        summary="Получение комментария по id",
+        description="Получение комментария по id, доступен для всех",
+        request=CommentSerializer,
+        responses={
+            200: OpenApiResponse(response=CommentSerializer, description="Задачи успешно получены"),
+        }
+    )
+class CommentTaskProject(ListAPIView):
+    permission_classes = (AllowAny, )
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+
+    def get(self, request, *args, **kwargs):
+        comment = Comment.objects.get(task=kwargs.get('id_task'))
+        serializer = self.serializer_class(comment)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+
+
+
+
+
 
 
 

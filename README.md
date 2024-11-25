@@ -1,2 +1,12 @@
+# Task Tracker API
 
-pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org psycopg2
+## Описание:
+Это API создания и отслеживания проектов с удобным функционалом. 
+Здесь используются такие технологии как DjangoRestFramework, WebSocket, PostgreSQL, JWT. 
+Все они позволяют сделать работы с данных API максимально функциональной и удобной.
+
+## Инструкция по запуску:
+пропишите следующие команды в консоль:
+1. docker-compose build
+2. docker-compose up
+   (что бы остановить ctrl + C)

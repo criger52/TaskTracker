@@ -1,7 +1,6 @@
 import uuid
 
 from django.db import models
-from rest_framework.fields import URLField
 
 from project.models import Project
 from user.models import DefaultUser

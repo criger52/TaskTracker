@@ -6,12 +6,11 @@ from project.serializers import ProjectSerializer, RolesSerializer
 
 class UserSerializer(serializers.ModelSerializer):
     avatar = serializers.ImageField(use_url=True, required=False)
-    projects = ProjectSerializer(many=True, read_only=True)
     role_in_proj = RolesSerializer(many=True, read_only=True)
 
     class Meta:
         model = DefaultUser
-        fields = ['id', 'username', 'first_name', 'last_name', 'role_platform', 'avatar', 'projects', 'history_project', 'role_in_proj']
+        fields = ['id', 'username', 'first_name', 'last_name', 'role_platform', 'avatar', 'history_project', 'role_in_proj']
         extra_kwargs = {
             'password': {'write_only': True},
             'email': {'write_only': True},
@@ -31,7 +30,7 @@ class UserProfileForAllSerializer(serializers.ModelSerializer):
 class RegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = DefaultUser
-        fields = ['username', 'first_name', 'last_name', 'email', 'password', 'role_platform']
+        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'password', 'role_platform']
 
     def create(self, validated_data):
         user = DefaultUser.objects.create_user(
@@ -47,7 +46,6 @@ class RegistrationSerializer(serializers.ModelSerializer):
 class UserProjectSerializer(serializers.ModelSerializer):
     projects = ProjectSerializer(many=True, read_only=True)
     role_in_proj = RolesSerializer(many=True, read_only=True)
-
     class Meta:
         model = DefaultUser
         fields = ['projects', 'role_in_proj']
