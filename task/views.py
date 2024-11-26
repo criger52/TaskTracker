@@ -1,4 +1,6 @@
 
+from comment.models import Comment
+from comment.seializers import CommentSerializer
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from rest_framework import status
 from rest_framework.generics import CreateAPIView, ListAPIView
@@ -6,11 +8,10 @@ from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from comment.models import Comment
-from comment.seializers import CommentSerializer
 from .models import Task
 from .permissions import IsUserInProjectOrCreator
 from .serializers import TaskCreate, TaskInProjectSerializer
+
 
 @extend_schema(
         summary="Создает новый задачу",
@@ -38,6 +39,7 @@ class TaskByID(APIView):
     serializer_class = TaskInProjectSerializer
 
     def get(self, request, *args, **kwargs):
+        print(kwargs.get('id'))
         task = Task.objects.get(id=kwargs.get('id'))
         serializer = TaskInProjectSerializer(task)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -80,10 +82,6 @@ class CommentTask(APIView):
     serializer_class = CommentSerializer
 
     def get(self, request, *args, **kwargs):
-        if kwargs.get('id_comment'):
-            comment = Comment.objects.get(id=kwargs.get('id_comment'))
-            serializer = self.serializer_class(comment)
-            return Response(serializer.data, status=status.HTTP_200_OK)
         comments = Comment.objects.filter(task=kwargs.get('id'))
         serializer = self.serializer_class(comments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

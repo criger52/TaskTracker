@@ -1,7 +1,7 @@
+from comment.seializers import CommentSerializer
 from rest_framework.serializers import ModelSerializer
 
 from .models import Task
-from comment.seializers import CommentSerializer
 
 
 class TaskSerializer(ModelSerializer):

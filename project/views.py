@@ -1,22 +1,20 @@
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, OpenApiResponse
-
+from rest_framework import status, filters
 from rest_framework.generics import ListAPIView, RetrieveAPIView, GenericAPIView, CreateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
-from rest_framework import status, filters
 from rest_framework.views import APIView
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
-
-from comment.models import Comment
-from comment.seializers import CommentSerializer
 from task.models import Task
 from task.serializers import TaskInProjectSerializer
 from user.models import DefaultUser
+
 from .permissions import IsCreatorOrTeamLead
 from .serializers import *
+
 
 @extend_schema(
         summary="Создает новый проект",
@@ -34,16 +32,30 @@ class ProjectCreate(CreateAPIView):
 
 @extend_schema(
         summary="Получает список всех проектов",
-        description="Получает список всех проектов, доступен для всех",
+        description="Получает список всех проектов, доступен для всех(есть сортировка)",
         request=ProjectAllListSerializers,
     )
-class ProjectAll(ListAPIView):
+class ProjectAll(APIView):
     permission_classes = (AllowAny, )
     queryset = Project.objects.all()
     serializer_class = ProjectAllListSerializers
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     ordering_fields = ["date_of_creation", "date_of_update", "title"]
     ordering = ["date_of_creation"]
+
+    def get(self, request, *args, **kwargs):
+        order_by = request.data.get('order_by', None)
+        projects = Project.objects.all()
+        if order_by:
+            valid_ordering = []
+            for i in order_by.split(','):
+                if i in self.ordering_fields:
+                    valid_ordering.append(i)
+            if valid_ordering:
+                queryset = projects.order_by(*valid_ordering)
+        serializer = self.serializer_class(projects, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 @extend_schema(
         summary="Получение конкретного проекта по id",
@@ -93,7 +105,7 @@ class ProjectEdit(GenericAPIView):
         request=ProjectMemberSerializer,
     )
 class ProjectListMembers(APIView):
-    permission_classes = (AllowAny,)  # доавить право тест на то что creator IsCreator
+    permission_classes = (AllowAny,)
     queryset = Project.objects.all()
     serializer_class = ProjectMemberSerializer
 
@@ -190,8 +202,8 @@ class ProjectMemberEdit(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 @extend_schema(
-        summary="Получение зада конкретного проекта",
-        description="Получение зада конкретного проекта, доступен для всех",
+        summary="Получение заданий конкретного проекта",
+        description="Получение задания конкретного проекта, доступен для всех",
         request=TaskInProjectSerializer,
         responses={
             200: OpenApiResponse(response=TaskInProjectSerializer, description="Задачи успешно получены"),
@@ -211,41 +223,41 @@ class TaskProject(APIView):
         serializer = self.serializer_class(tasks, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-class TaskProjectEdit(APIView):
-    permission_classes = (IsAdminUser,)
-    queryset = Task.objects.all()
-    serializer_class = TaskInProjectSerializer
+# class TaskProjectEdit(APIView):
+#     permission_classes = (IsAdminUser,)
+#     queryset = Task.objects.all()
+#     serializer_class = TaskInProjectSerializer
+#
+#     def patch(self, request, *args, **kwargs):
+#         task = Task.objects.get(id=kwargs['id_task'])
+#         serializer = self.serializer_class(task, request.data, partial=True)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#
+#     def delete(self, request, *args, **kwargs):
+#         task = Task.objects.get(id=kwargs['id_task'])
+#         task.delete()
+#         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def patch(self, request, *args, **kwargs):
-        task = Task.objects.get(id=kwargs['id_task'])
-        serializer = self.serializer_class(task, request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, *args, **kwargs):
-        task = Task.objects.get(id=kwargs['id_task'])
-        task.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-@extend_schema(
-        summary="Получение комментария по id",
-        description="Получение комментария по id, доступен для всех",
-        request=CommentSerializer,
-        responses={
-            200: OpenApiResponse(response=CommentSerializer, description="Задачи успешно получены"),
-        }
-    )
-class CommentTaskProject(ListAPIView):
-    permission_classes = (AllowAny, )
-    queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
-
-    def get(self, request, *args, **kwargs):
-        comment = Comment.objects.get(task=kwargs.get('id_task'))
-        serializer = self.serializer_class(comment)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+# @extend_schema(
+#         summary="Получение комментария по id",
+#         description="Получение комментария по id, доступен для всех",
+#         request=CommentSerializer,
+#         responses={
+#             200: OpenApiResponse(response=CommentSerializer, description="Задачи успешно получены"),
+#         }
+#     )
+# class CommentTaskProject(ListAPIView):
+#     permission_classes = (AllowAny, )
+#     queryset = Comment.objects.all()
+#     serializer_class = CommentSerializer
+#
+#     def get(self, request, *args, **kwargs):
+#         comment = Comment.objects.get(task=kwargs.get('id_task'))
+#         serializer = self.serializer_class(comment)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 

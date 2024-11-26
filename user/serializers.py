@@ -1,7 +1,7 @@
+from project.serializers import ProjectSerializer, RolesSerializer
 from rest_framework import serializers
 
 from .models import DefaultUser
-from project.serializers import ProjectSerializer, RolesSerializer
 
 
 class UserSerializer(serializers.ModelSerializer):

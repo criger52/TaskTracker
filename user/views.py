@@ -1,16 +1,16 @@
 
+from comment.models import Comment
+from comment.seializers import CommentSerializer
 from drf_spectacular.utils import extend_schema, OpenApiResponse
+from project.serializers import *
+from rest_framework import status
 from rest_framework.generics import CreateAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.views import APIView
-
-from comment.models import Comment
-from comment.seializers import CommentSerializer
 from task.models import Task
-from project.serializers import *
 from task.serializers import TaskSerializer
+
 from .models import DefaultUser
 from .serializers import UserSerializer, RegistrationSerializer, UserProjectSerializer, UserProfileForAllSerializer
 
@@ -27,8 +27,6 @@ from .serializers import UserSerializer, RegistrationSerializer, UserProjectSeri
 class RegistrationAPIView(CreateAPIView):
     permission_classes = (AllowAny, )
     serializer_class = RegistrationSerializer
-
-
     def post(self, request):
         serializer = RegistrationSerializer(data=request.data)
         if serializer.is_valid():
@@ -113,6 +111,27 @@ class ListProjectsUser(APIView):
 
     def get(self, request, *args, **kwargs):
         user = DefaultUser.objects.all().get(id=kwargs.get('id_user'))
+        serializer = UserSerializer(user)
+        # print(serializer.data.get('role_in_proj'))
+        projects = []
+        for i in serializer.data.get('role_in_proj'):
+            projects.append(i)
+        return Response(projects)
+
+
+@extend_schema(
+        summary="Список ролей конкретного пользователя",
+        description="Получает список ролей пользователя из url, доступен для всех",
+        request=UserProjectSerializer,
+    )
+class ListProjectsCurrentUser(APIView):
+    permission_classes = (AllowAny, )
+    queryset = DefaultUser.objects.all()
+    serializer_class = UserProjectSerializer
+
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
         serializer = UserSerializer(user)
         # print(serializer.data.get('role_in_proj'))
         projects = []

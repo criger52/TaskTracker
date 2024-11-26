@@ -1,12 +1,13 @@
-FROM python:3.10-slim
+FROM python:3.12.5
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY . /app
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --index-url=https://pypi.tuna.tsinghua.edu.cn/simple/ --no-cache-dir -r requirements.txt
 
-COPY . .
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
 EXPOSE 8000
 

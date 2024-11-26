@@ -1,18 +1,17 @@
 
-from drf_spectacular.utils import extend_schema, OpenApiResponse
-from rest_framework.generics import RetrieveAPIView, CreateAPIView
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.views import APIView
-
 from comment.models import Comment
 from comment.permissions import IsCreatorTask, IsCreatorComment
 from comment.seializers import CommentSerializer
+from drf_spectacular.utils import extend_schema, OpenApiResponse
+from rest_framework import status
+from rest_framework.generics import RetrieveAPIView, CreateAPIView
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 
 @extend_schema(
-        summary="Создание комментарий",
+        summary="Создание комментария",
         description="Создает комментарий, доступен для создателя задачи",
         request=CommentSerializer,
         responses={

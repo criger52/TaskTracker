@@ -1,6 +1,5 @@
-from rest_framework.permissions import BasePermission
-
 from project.models import Project, Roles
+from rest_framework.permissions import BasePermission
 
 
 class IsCreatorOrTeamLead(BasePermission):

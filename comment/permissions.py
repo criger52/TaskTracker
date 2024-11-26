@@ -1,6 +1,5 @@
-from rest_framework.permissions import BasePermission
-
 from comment.models import Comment
+from rest_framework.permissions import BasePermission
 from task.models import Task
 
 
