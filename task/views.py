@@ -23,11 +23,13 @@ class TaskCreate(CreateAPIView):
     queryset = Task.objects.all()
     serializer_class = TaskCreate
 
+
 class TaskAllList(ListAPIView):
     # permission_classes = (, )
     permission_classes = (IsAdminUser,)
     queryset = Task.objects.all()
     serializer_class = TaskInProjectSerializer
+
 @extend_schema(
         summary="Получает задачу по id",
         description="Получает задачу по id, доступен для всех",

@@ -32,6 +32,8 @@ class Task(models.Model):
     deadline = models.DateField()
     tester = models.ForeignKey(DefaultUser, on_delete=models.CASCADE, related_name='responsible')
 
+    class Meta:
+        unique_together = ('title', 'project')
 
 
     def __str__(self):

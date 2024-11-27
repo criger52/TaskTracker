@@ -64,7 +64,7 @@ class CurrentUserView(APIView):
         }
     )
 class GetUserAPIView(RetrieveAPIView):
-    permission_classes = (AllowAny, )
+    permission_classes = (IsAuthenticated, )
     queryset = DefaultUser.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'id'

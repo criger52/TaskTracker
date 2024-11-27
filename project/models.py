@@ -5,13 +5,21 @@ from django.db import models
 
 
 class Project(models.Model):
+    STATUS_CHOICES = (
+        ('active', 'active'),
+        ('archive', 'archive'),
+    )
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=64)
     description = models.TextField(default='')
     date_of_creation = models.DateTimeField(auto_now_add=True)
     date_of_update = models.DateTimeField(auto_now=True)
-    status = models.CharField(max_length=64, default='active')
+    status = models.CharField(max_length=64, choices=STATUS_CHOICES,default='active')
     creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('title', 'creator')
 
 
     def __str__(self):

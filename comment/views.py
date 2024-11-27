@@ -5,7 +5,7 @@ from comment.seializers import CommentSerializer
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from rest_framework import status
 from rest_framework.generics import RetrieveAPIView, CreateAPIView
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -50,7 +50,7 @@ class CommentByID(RetrieveAPIView):
         }
     )
 class CommentByIDEdit(APIView):
-    permission_classes = (IsCreatorComment,)
+    permission_classes = (IsAuthenticated,)
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     lookup_field = 'id'

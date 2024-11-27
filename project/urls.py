@@ -11,8 +11,6 @@ urlpatterns = [
     path('<uuid:id>/roles/<uuid:id_role>/', ProjectMemberEdit.as_view()),
     path('<uuid:id>/edit/', ProjectEdit.as_view()),
     path('<uuid:id>/tasks/', TaskProject.as_view()),
-    # path('<uuid:id>/<uuid:id_task>/', TaskProject.as_view()),
-    # path('<uuid:id>/<uuid:id_task>/edit/', TaskProjectEdit.as_view()),  # надо ли это вообще
-    # path('<uuid:id>/<uuid:id_task>/<uuid:id_comment>/', CommentTaskProject.as_view()),
+
 ]
 

@@ -52,7 +52,7 @@ class ProjectAll(APIView):
                 if i in self.ordering_fields:
                     valid_ordering.append(i)
             if valid_ordering:
-                queryset = projects.order_by(*valid_ordering)
+                projects = projects.order_by(*valid_ordering)
         serializer = self.serializer_class(projects, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -148,9 +148,9 @@ class AddRole(APIView):
             user.save()
             try:
                 send_mail('Вас добавили в проект',
-                          f'Вас доавбили в проект {project.title}',
+                          f'Вас добавили в проект {project.title}',
                           'vladimirv2312@gmail.com',
-                        [DefaultUser.objects.get(id=request.data.get('id_user')).email])
+                        ['kirillchernovinsky@yandex.ru'])
             except:
                 pass
             try:

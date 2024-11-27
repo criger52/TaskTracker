@@ -10,3 +10,7 @@ class IsCreatorTask(BasePermission):
 class IsCreatorComment(BasePermission):
     def has_permission(self, request, view):
         return request.user.id == Comment.objects.get(id=view.kwargs.get('id')).user.id
+
+# class IsRoleInProject(BasePermission):
+#     def has_permission(self, request, view):
+#         return request.user.id
